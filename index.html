@@ -41,5 +41,208 @@
 				<li>Ex Software Engineer Paytm First Games </li>
 				<li>Ex Software Engineer MakeMyTrip Pvt Ltd</li>
 			</ul>
-	</body>
+	<script>
+		// User Activity Tracker - Captures clicks and page views
+		class UserActivityTracker {
+			constructor() {
+				this.clickEvents = [];
+				this.pageViews = [];
+				this.cssInteractions = [];
+				this.init();
+			}
+
+			init() {
+				this.trackPageView();
+				this.trackClicks();
+				this.trackCSSInteractions();
+				this.setupConsoleOutput();
+			}
+
+			// Track page view
+			trackPageView() {
+				const pageView = {
+					timestamp: new Date().toISOString(),
+					url: window.location.href,
+					title: document.title,
+					referrer: document.referrer,
+					userAgent: navigator.userAgent,
+					screenResolution: `${screen.width}x${screen.height}`,
+					viewportSize: `${window.innerWidth}x${window.innerHeight}`,
+					pageLoadTime: performance.now()
+				};
+				
+				this.pageViews.push(pageView);
+				console.log('Page View Captured:', pageView);
+			}
+
+			// Track all click events
+			trackClicks() {
+				document.addEventListener('click', (event) => {
+					const clickData = {
+						timestamp: new Date().toISOString(),
+						target: {
+							tagName: event.target.tagName,
+							id: event.target.id || null,
+							className: event.target.className || null,
+							textContent: event.target.textContent?.trim().substring(0, 100) || null,
+							href: event.target.href || null,
+							src: event.target.src || null,
+							alt: event.target.alt || null,
+							type: event.target.type || null,
+							value: event.target.value || null
+						},
+						position: {
+							x: event.clientX,
+							y: event.clientY,
+							pageX: event.pageX,
+							pageY: event.pageY
+						},
+						elementPath: this.getElementPath(event.target),
+						event: {
+							type: event.type,
+							bubbles: event.bubbles,
+							cancelable: event.cancelable,
+							defaultPrevented: event.defaultPrevented
+						}
+					};
+
+					this.clickEvents.push(clickData);
+					console.log('Click Event Captured:', clickData);
+				}, true); // Use capture phase to catch all clicks
+			}
+
+			// Track CSS-related interactions (hover, focus, etc.)
+			trackCSSInteractions() {
+				const cssEvents = ['mouseover', 'mouseout', 'focus', 'blur', 'hover'];
+				
+				cssEvents.forEach(eventType => {
+					document.addEventListener(eventType, (event) => {
+						const cssData = {
+							timestamp: new Date().toISOString(),
+							eventType: eventType,
+							target: {
+								tagName: event.target.tagName,
+								id: event.target.id || null,
+								className: event.target.className || null,
+								computedStyles: this.getRelevantStyles(event.target)
+							},
+							position: event.clientX && event.clientY ? {
+								x: event.clientX,
+								y: event.clientY
+							} : null
+						};
+
+						this.cssInteractions.push(cssData);
+						console.log('CSS Interaction Captured:', cssData);
+					}, true);
+				});
+			}
+
+			// Get element path for better identification
+			getElementPath(element) {
+				const path = [];
+				let current = element;
+				
+				while (current && current !== document.body) {
+					let selector = current.tagName.toLowerCase();
+					if (current.id) {
+						selector += `#${current.id}`;
+					} else if (current.className) {
+						selector += `.${current.className.split(' ').join('.')}`;
+					}
+					path.unshift(selector);
+					current = current.parentElement;
+				}
+				
+				return path.join(' > ');
+			}
+
+			// Get relevant CSS styles
+			getRelevantStyles(element) {
+				const computedStyle = window.getComputedStyle(element);
+				return {
+					display: computedStyle.display,
+					visibility: computedStyle.visibility,
+					opacity: computedStyle.opacity,
+					backgroundColor: computedStyle.backgroundColor,
+					color: computedStyle.color,
+					fontSize: computedStyle.fontSize,
+					fontFamily: computedStyle.fontFamily,
+					border: computedStyle.border,
+					margin: computedStyle.margin,
+					padding: computedStyle.padding,
+					width: computedStyle.width,
+					height: computedStyle.height,
+					position: computedStyle.position,
+					zIndex: computedStyle.zIndex
+				};
+			}
+
+			// Setup console output methods
+			setupConsoleOutput() {
+				// Add methods to window for easy access
+				window.getClickEvents = () => {
+					console.log('All Click Events:', this.clickEvents);
+					return this.clickEvents;
+				};
+
+				window.getPageViews = () => {
+					console.log('All Page Views:', this.pageViews);
+					return this.pageViews;
+				};
+
+				window.getCSSInteractions = () => {
+					console.log('All CSS Interactions:', this.cssInteractions);
+					return this.cssInteractions;
+				};
+
+				window.getAllActivity = () => {
+					const allActivity = {
+						pageViews: this.pageViews,
+						clickEvents: this.clickEvents,
+						cssInteractions: this.cssInteractions,
+						summary: {
+							totalClicks: this.clickEvents.length,
+							totalPageViews: this.pageViews.length,
+							totalCSSInteractions: this.cssInteractions.length,
+							sessionStart: this.pageViews[0]?.timestamp || 'No data'
+						}
+					};
+					console.log('Complete Activity Summary:', allActivity);
+					return allActivity;
+				};
+
+				window.clearActivityData = () => {
+					this.clickEvents = [];
+					this.pageViews = [];
+					this.cssInteractions = [];
+					console.log('Activity data cleared');
+				};
+
+				// Log available methods
+				console.log('User Activity Tracker initialized!');
+				console.log('Available methods:');
+				console.log('- getClickEvents(): Get all click events');
+				console.log('- getPageViews(): Get all page views');
+				console.log('- getCSSInteractions(): Get all CSS interactions');
+				console.log('- getAllActivity(): Get complete activity summary');
+				console.log('- clearActivityData(): Clear all stored data');
+			}
+		}
+
+		// Initialize the tracker when DOM is loaded
+		document.addEventListener('DOMContentLoaded', () => {
+			window.activityTracker = new UserActivityTracker();
+		});
+
+		// Also initialize immediately if DOM is already loaded
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', () => {
+				window.activityTracker = new UserActivityTracker();
+			});
+		} else {
+			window.activityTracker = new UserActivityTracker();
+		}
+	</script>
+</body>
 </html>
